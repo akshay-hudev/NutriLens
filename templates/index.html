@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriLens — Food Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #FAF7F2;
+    --ink: #1A1714;
+    --moss: #3D5A3E;
+    --moss-light: #5C8A5E;
+    --sand: #C9B99A;
+    --sand-light: #E8DFCF;
+    --warm-white: #FFFDF9;
+    --accent: #D4622A;
+    --accent-soft: #F2E8E0;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 3rem;
+    background: rgba(250,247,242,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--sand-light);
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem; font-weight: 700;
+    color: var(--moss);
+    letter-spacing: -0.02em;
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-badge {
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--moss-light);
+    background: rgba(61,90,62,0.1);
+    padding: 0.3rem 0.8rem; border-radius: 20px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: grid; grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 6rem 3rem 3rem;
+    gap: 4rem;
+  }
+
+  .hero-text { max-width: 560px; }
+
+  .hero-eyebrow {
+    font-size: 0.78rem; font-weight: 500; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 1.2rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .hero-eyebrow::before {
+    content: ''; width: 2rem; height: 1px; background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 5vw, 4.2rem);
+    line-height: 1.08; font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 1.4rem;
+    letter-spacing: -0.03em;
+  }
+  h1 em {
+    font-style: italic; color: var(--moss);
+  }
+
+  .hero-sub {
+    font-size: 1.05rem; line-height: 1.7; color: #5A5450;
+    font-weight: 300; margin-bottom: 2.5rem; max-width: 440px;
+  }
+
+  /* ── UPLOAD CARD ── */
+  .upload-card {
+    background: var(--warm-white);
+    border: 1px solid var(--sand-light);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--sand);
+    border-radius: 14px;
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--moss);
+    background: rgba(61,90,62,0.04);
+  }
+  .drop-zone input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+
+  .drop-icon {
+    width: 56px; height: 56px; margin: 0 auto 1rem;
+    background: var(--accent-soft);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .drop-icon svg { width: 26px; height: 26px; }
+
+  .drop-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem; font-weight: 700;
+    color: var(--ink); margin-bottom: 0.4rem;
+  }
+  .drop-sub {
+    font-size: 0.85rem; color: #8A8480; font-weight: 300;
+  }
+
+  .file-preview {
+    display: flex; flex-wrap: wrap; gap: 0.6rem;
+    margin-top: 1rem; min-height: 0;
+  }
+  .file-chip {
+    background: rgba(61,90,62,0.08);
+    color: var(--moss);
+    font-size: 0.78rem; font-weight: 500;
+    padding: 0.3rem 0.8rem; border-radius: 20px;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+
+  .btn-analyze {
+    width: 100%; margin-top: 1.4rem;
+    background: var(--moss);
+    color: #fff;
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem; font-weight: 500;
+    padding: 1rem 2rem; border-radius: 12px;
+    letter-spacing: 0.02em;
+    transition: all 0.2s ease;
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+  }
+  .btn-analyze:hover { background: var(--moss-light); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(61,90,62,0.3); }
+  .btn-analyze:disabled { background: #B0ABA6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .demo-note {
+    margin-top: 1rem; text-align: center;
+    font-size: 0.78rem; color: #8A8480;
+  }
+  .demo-note.warning { color: var(--accent); }
+
+  /* ── RIGHT PANEL: Feature cards ── */
+  .hero-right {
+    display: flex; flex-direction: column; gap: 1.2rem;
+  }
+
+  .feature-card {
+    background: var(--warm-white);
+    border: 1px solid var(--sand-light);
+    border-radius: 16px; padding: 1.4rem 1.6rem;
+    display: flex; gap: 1.2rem; align-items: flex-start;
+    transition: box-shadow 0.2s ease;
+  }
+  .feature-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+
+  .feature-icon {
+    width: 44px; height: 44px; flex-shrink: 0;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+  }
+  .fi-green { background: rgba(61,90,62,0.1); }
+  .fi-orange { background: rgba(212,98,42,0.1); }
+  .fi-blue { background: rgba(42,98,180,0.1); }
+
+  .feature-title {
+    font-weight: 500; font-size: 0.95rem; color: var(--ink); margin-bottom: 0.25rem;
+  }
+  .feature-desc {
+    font-size: 0.82rem; color: #7A7470; line-height: 1.5; font-weight: 300;
+  }
+
+  /* ── STAT ROW ── */
+  .stat-row {
+    display: flex; gap: 0; border: 1px solid var(--sand-light);
+    border-radius: 16px; overflow: hidden;
+    background: var(--warm-white);
+  }
+  .stat-item {
+    flex: 1; padding: 1.2rem 1rem; text-align: center;
+    border-right: 1px solid var(--sand-light);
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem; font-weight: 700; color: var(--moss);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.72rem; color: #8A8480; margin-top: 0.3rem;
+    text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; padding: 2rem;
+    font-size: 0.8rem; color: #A09A94;
+    border-top: 1px solid var(--sand-light);
+  }
+
+  /* ── LOADING STATE ── */
+  .btn-analyze.loading { pointer-events: none; }
+  .btn-analyze .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .btn-analyze.loading .spinner { display: block; }
+  .btn-analyze.loading .btn-label { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding: 5rem 1.5rem 2rem; gap: 2rem; }
+    nav { padding: 1rem 1.5rem; }
+    .hero-text { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Nutri<span>Lens</span></div>
+  <div class="nav-badge">AI Food Intelligence</div>
+</nav>
+
+<main class="hero">
+  <div class="hero-text">
+    <div class="hero-eyebrow">Computer Vision · Nutrition Analysis</div>
+    <h1>Understand what's <em>really</em> on your plate</h1>
+    <p class="hero-sub">
+      Upload a food photo and NutriLens instantly identifies the dish using deep learning,
+      then delivers a full nutritional breakdown — protein, carbs, fat, and more.
+    </p>
+
+    <div class="upload-card">
+      <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+        <div class="drop-zone" id="dropZone">
+          <input type="file" name="img" id="fileInput" multiple accept="image/*">
+          <div class="drop-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#D4622A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <div class="drop-title">Drop food photos here</div>
+          <div class="drop-sub">or click to browse · JPG, PNG, WEBP · multiple files ok</div>
+        </div>
+        <div class="file-preview" id="filePreview"></div>
+        <button type="submit" class="btn-analyze" id="analyzeBtn" disabled>
+          <div class="spinner"></div>
+          <span class="btn-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            Analyse Food
+          </span>
+        </button>
+      </form>
+      {% if not model_loaded %}
+      <p class="demo-note warning">⚠ Model not found — running in demo mode with random predictions</p>
+      {% else %}
+      <p class="demo-note">Powered by InceptionV3 · 101 food classes · ~77% accuracy</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="stat-row">
+      <div class="stat-item">
+        <div class="stat-num">101</div>
+        <div class="stat-label">Food classes</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">77%</div>
+        <div class="stat-label">Val accuracy</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">5</div>
+        <div class="stat-label">Nutrients tracked</div>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon fi-green">🔍</div>
+      <div>
+        <div class="feature-title">Deep learning recognition</div>
+        <div class="feature-desc">InceptionV3 transfer learning trained on 101,000 Food-101 images. Returns top-3 predictions with confidence scores.</div>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon fi-orange">🥗</div>
+      <div>
+        <div class="feature-title">USDA nutrition data</div>
+        <div class="feature-desc">Every prediction is mapped to verified USDA FoodData Central values — protein, fat, carbohydrates, calcium, and vitamins per 100g.</div>
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon fi-blue">✨</div>
+      <div>
+        <div class="feature-title">Gemini AI descriptions</div>
+        <div class="feature-desc">Optional Google Gemini Vision integration provides natural-language calorie descriptions for each detected item.</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>NutriLens · Built with InceptionV3, Flask, and Food-101 · For educational use</footer>
+
+<script>
+  const input = document.getElementById('fileInput');
+  const preview = document.getElementById('filePreview');
+  const btn = document.getElementById('analyzeBtn');
+  const dropZone = document.getElementById('dropZone');
+  const form = document.getElementById('uploadForm');
+
+  input.addEventListener('change', updatePreview);
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    input.files = e.dataTransfer.files;
+    updatePreview();
+  });
+
+  function updatePreview() {
+    const files = Array.from(input.files);
+    preview.innerHTML = files.map(f =>
+      `<div class="file-chip">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+        ${f.name}
+      </div>`
+    ).join('');
+    btn.disabled = files.length === 0;
+  }
+
+  form.addEventListener('submit', () => {
+    btn.classList.add('loading');
+  });
+</script>
+</body>
+</html>

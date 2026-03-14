@@ -1,0 +1,15 @@
+# Model file (too large for GitHub)
+model_trained_101class.hdf5
+
+# Uploaded images
+static/uploads/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Virtual environment
+venv/
+env/

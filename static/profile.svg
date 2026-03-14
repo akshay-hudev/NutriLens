@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">
+  <rect width="800" height="500" fill="#FAF7F2"/>
+  <!-- Plate -->
+  <ellipse cx="400" cy="270" rx="180" ry="175" fill="#F0EBE3" stroke="#C9B99A" stroke-width="2"/>
+  <ellipse cx="400" cy="270" rx="148" ry="143" fill="#FFFDF9" stroke="#E8DFCF" stroke-width="1.5"/>
+  <!-- Salad greens -->
+  <ellipse cx="390" cy="250" rx="60" ry="38" fill="#5C8A5E" opacity="0.85" transform="rotate(-15 390 250)"/>
+  <ellipse cx="420" cy="255" rx="50" ry="32" fill="#3D5A3E" opacity="0.9" transform="rotate(10 420 255)"/>
+  <ellipse cx="375" cy="265" rx="45" ry="28" fill="#6FA872" opacity="0.8" transform="rotate(-5 375 265)"/>
+  <!-- Tomatoes -->
+  <circle cx="355" cy="242" r="20" fill="#D4622A" opacity="0.9"/>
+  <circle cx="355" cy="242" r="20" fill="none" stroke="#B84E20" stroke-width="1"/>
+  <line x1="355" y1="222" x2="355" y2="218" stroke="#3D5A3E" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="442" cy="248" r="17" fill="#D4622A" opacity="0.85"/>
+  <line x1="442" y1="231" x2="442" y2="227" stroke="#3D5A3E" stroke-width="2" stroke-linecap="round"/>
+  <!-- Cheese slice -->
+  <polygon points="390,275 430,268 435,295 388,300" fill="#F0C040" opacity="0.9"/>
+  <!-- Cucumber slices -->
+  <ellipse cx="368" cy="285" rx="14" ry="14" fill="#8DB87A" opacity="0.8"/>
+  <ellipse cx="368" cy="285" rx="9" ry="9" fill="#C5DFB5" opacity="0.7"/>
+  <ellipse cx="415" cy="280" rx="12" ry="12" fill="#8DB87A" opacity="0.75"/>
+  <ellipse cx="415" cy="280" rx="7" ry="7" fill="#C5DFB5" opacity="0.65"/>
+  <!-- Fork -->
+  <rect x="220" y="195" width="6" height="120" rx="3" fill="#B0A898"/>
+  <rect x="218" y="195" width="2" height="40" rx="1" fill="#B0A898"/>
+  <rect x="223" y="195" width="2" height="40" rx="1" fill="#B0A898"/>
+  <rect x="228" y="195" width="2" height="40" rx="1" fill="#B0A898"/>
+  <rect x="233" y="195" width="2" height="40" rx="1" fill="#B0A898"/>
+  <!-- Knife -->
+  <rect x="566" y="195" width="6" height="120" rx="3" fill="#B0A898"/>
+  <polygon points="572,195 572,235 576,235" fill="#C8C0B5"/>
+  <!-- Text -->
+  <text x="400" y="88" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="700" fill="#1A1714" letter-spacing="-1">NutriLens</text>
+  <text x="400" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#8A8480" letter-spacing="3">FOOD INTELLIGENCE</text>
+</svg>
