@@ -3,332 +3,358 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Results — NutriLens</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>3D Results - NutriLens</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --cream: #FAF7F2; --ink: #1A1714; --moss: #3D5A3E; --moss-light: #5C8A5E;
-    --sand: #C9B99A; --sand-light: #E8DFCF; --warm-white: #FFFDF9;
-    --accent: #D4622A; --accent-soft: #F2E8E0;
-    --protein: #2A6CB5; --fat: #D4622A; --carbs: #7B5EA7; --calcium: #3D5A3E; --vitamins: #B5862A;
+    --page: #F5F7F3; --ink: #17201B; --muted: #66736C; --line: #DDE5DC;
+    --panel: #FFFFFF; --green: #2F6B4F; --green-soft: #E8F2EC;
+    --blue: #2E6DA4; --blue-soft: #E7F0F8; --amber: #C46B32;
+    --amber-soft: #F7EADF; --red-soft: #F9E4DF; --red: #A3402C;
+    --shadow: 0 12px 38px rgba(23, 32, 27, 0.08);
   }
-  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); min-height: 100vh; }
-
+  body { font-family: 'DM Sans', sans-serif; background: var(--page); color: var(--ink); min-height: 100vh; }
   nav {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 1.2rem 3rem; background: rgba(250,247,242,0.95);
-    backdrop-filter: blur(12px); border-bottom: 1px solid var(--sand-light);
-    position: sticky; top: 0; z-index: 100;
+    position: sticky; top: 0; z-index: 20;
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+    padding: 1rem 3rem; background: rgba(245,247,243,0.92);
+    backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
   }
-  .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--moss); }
-  .nav-logo span { color: var(--accent); }
-  .nav-actions { display: flex; gap: 0.8rem; align-items: center; }
+  .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--green); }
+  .nav-logo span { color: var(--amber); }
+  .nav-actions { display: flex; gap: 0.7rem; flex-wrap: wrap; }
   .nav-btn {
-    padding: 0.5rem 1.1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 500;
-    text-decoration: none; cursor: pointer; border: none; font-family: inherit;
-    transition: all 0.15s ease;
+    color: var(--ink); text-decoration: none; border: 1px solid var(--line);
+    background: var(--panel); padding: 0.52rem 0.9rem; font-weight: 700; font-size: 0.84rem;
   }
-  .nav-btn-outline { border: 1px solid var(--sand); background: transparent; color: var(--ink); }
-  .nav-btn-outline:hover { border-color: var(--moss); color: var(--moss); }
-  .nav-btn-solid { background: var(--moss); color: #fff; }
-  .nav-btn-solid:hover { background: var(--moss-light); }
-
-  .page { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem 5rem; }
-
-  /* ── PAGE HEADER ── */
-  .page-header { margin-bottom: 2.5rem; }
-  .page-eyebrow {
-    font-size: 0.78rem; font-weight: 500; letter-spacing: 0.12em;
-    text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem;
-  }
-  .page-title {
-    font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700;
-    color: var(--ink); letter-spacing: -0.02em;
-  }
-
-  {% if not model_loaded %}
-  .demo-banner {
-    background: rgba(212,98,42,0.08); border: 1px solid rgba(212,98,42,0.25);
-    border-radius: 12px; padding: 0.9rem 1.4rem; margin-bottom: 2rem;
-    font-size: 0.88rem; color: #7A3A18;
-    display: flex; gap: 0.6rem; align-items: center;
-  }
-  {% endif %}
-
-  /* ── SUMMARY STRIP ── */
+  .nav-btn.primary { background: var(--green); color: #fff; border-color: var(--green); }
+  .page { max-width: 1180px; margin: 0 auto; padding: 3rem 2rem 5rem; }
+  .page-header { margin-bottom: 2rem; }
+  .eyebrow { color: var(--amber); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .page-title { font-family: 'Playfair Display', serif; font-size: clamp(2.1rem, 5vw, 3.7rem); line-height: 1.05; }
+  .page-sub { color: var(--muted); margin-top: 0.7rem; line-height: 1.6; max-width: 720px; }
   .summary-strip {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 1px; background: var(--sand-light);
-    border: 1px solid var(--sand-light); border-radius: 16px;
-    overflow: hidden; margin-bottom: 3rem;
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+    border: 1px solid var(--line); background: var(--line); gap: 1px;
+    box-shadow: var(--shadow); margin-bottom: 2rem;
   }
-  .summary-cell {
-    background: var(--warm-white); padding: 1.4rem 1.2rem; text-align: center;
-  }
+  .summary-cell { background: var(--panel); padding: 1.2rem; }
   .summary-num {
-    font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700;
-    color: var(--moss); line-height: 1;
+    font-family: 'Playfair Display', serif; font-weight: 700; font-size: clamp(1.7rem, 4vw, 2.5rem);
+    color: var(--green); line-height: 1;
   }
-  .summary-label { font-size: 0.72rem; color: #8A8480; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.35rem; font-weight: 500; }
-
-  /* ── FOOD CARDS ── */
-  .cards-grid { display: flex; flex-direction: column; gap: 2rem; margin-bottom: 3rem; }
-
-  .food-card {
-    background: var(--warm-white); border: 1px solid var(--sand-light);
-    border-radius: 20px; overflow: hidden;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
-    display: grid; grid-template-columns: 280px 1fr;
-    animation: fadeUp 0.4s ease both;
+  .summary-label { margin-top: 0.4rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.72rem; font-weight: 800; }
+  .warning-list {
+    background: var(--amber-soft); border: 1px solid #E7C7AD; color: #793B15;
+    padding: 1rem 1.1rem; margin-bottom: 2rem; line-height: 1.55; font-size: 0.9rem;
   }
-  .food-card:nth-child(2) { animation-delay: 0.1s; }
-  .food-card:nth-child(3) { animation-delay: 0.2s; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-
-  .card-image { position: relative; overflow: hidden; }
-  .card-image img { width: 100%; height: 100%; object-fit: cover; display: block; min-height: 220px; }
-  .card-image-overlay {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    background: linear-gradient(to top, rgba(26,23,20,0.7) 0%, transparent 100%);
-    padding: 1.2rem;
+  .warning-list strong { display: block; margin-bottom: 0.35rem; }
+  .grid-two { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 1.4rem; margin-bottom: 1.4rem; align-items: start; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line); box-shadow: var(--shadow);
+    padding: 1.35rem;
   }
-  .card-calories-badge {
-    background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.3);
-    color: #fff; font-weight: 600; font-size: 1rem;
-    padding: 0.35rem 0.8rem; border-radius: 20px; display: inline-block;
+  .section-title {
+    font-family: 'Playfair Display', serif; font-size: 1.35rem; margin-bottom: 1rem; line-height: 1.2;
   }
-
-  .card-body { padding: 1.8rem; display: flex; flex-direction: column; gap: 1.4rem; }
-
-  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
-  .card-food-name {
-    font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700;
-    color: var(--ink); text-transform: capitalize; letter-spacing: -0.02em; line-height: 1.2;
+  .food-name {
+    font-family: 'Playfair Display', serif; font-size: 2.2rem; text-transform: capitalize;
+    line-height: 1.1; margin-bottom: 0.4rem;
   }
-  .nutritionix-link {
-    text-decoration: none; font-size: 0.78rem; color: var(--moss); font-weight: 500;
-    background: rgba(61,90,62,0.08); padding: 0.3rem 0.8rem; border-radius: 20px;
-    white-space: nowrap; transition: background 0.15s;
+  .muted { color: var(--muted); line-height: 1.55; }
+  .pill-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.9rem; }
+  .pill {
+    background: var(--green-soft); color: var(--green); padding: 0.35rem 0.6rem;
+    font-size: 0.76rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
   }
-  .nutritionix-link:hover { background: rgba(61,90,62,0.15); }
-
-  /* Predictions */
-  .predictions-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: #8A8480; font-weight: 500; margin-bottom: 0.7rem; }
-  .prediction-bars { display: flex; flex-direction: column; gap: 0.5rem; }
-  .pred-row { display: flex; align-items: center; gap: 0.8rem; }
-  .pred-name { font-size: 0.82rem; color: var(--ink); min-width: 160px; text-transform: capitalize; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .pred-bar-wrap { flex: 1; height: 6px; background: var(--sand-light); border-radius: 3px; overflow: hidden; }
-  .pred-bar { height: 100%; border-radius: 3px; background: var(--moss); transition: width 0.6s ease; }
-  .pred-bar.top { background: var(--moss); }
-  .pred-bar.second { background: var(--sand); }
-  .pred-bar.third { background: var(--sand-light); }
-  .pred-pct { font-size: 0.8rem; font-weight: 500; color: #5A5450; min-width: 38px; text-align: right; }
-
-  /* Nutrition grid */
-  .nutrition-grid {
-    display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.6rem;
+  .pill.blue { background: var(--blue-soft); color: var(--blue); }
+  .pill.amber { background: var(--amber-soft); color: #793B15; }
+  .prediction-bars { display: flex; flex-direction: column; gap: 0.65rem; margin-top: 1.2rem; }
+  .pred-row { display: grid; grid-template-columns: minmax(110px, 170px) 1fr 48px; gap: 0.7rem; align-items: center; }
+  .pred-name { text-transform: capitalize; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pred-track { height: 8px; background: var(--line); overflow: hidden; }
+  .pred-bar { height: 100%; background: var(--green); }
+  .pred-row:nth-child(2) .pred-bar { background: var(--blue); }
+  .pred-row:nth-child(3) .pred-bar { background: var(--amber); }
+  .pred-pct { text-align: right; color: var(--muted); font-weight: 700; font-size: 0.84rem; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.8rem; }
+  .view-card { border: 1px solid var(--line); background: #FAFBF8; overflow: hidden; }
+  .view-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+  .view-meta { padding: 0.65rem; font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+  .mask-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; }
+  .mask-card { border: 1px solid var(--line); overflow: hidden; background: #FAFBF8; }
+  .mask-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+  .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .metric {
+    border: 1px solid var(--line); background: #FAFBF8; padding: 1rem;
   }
+  .metric-value { font-weight: 800; font-size: 1.4rem; color: var(--ink); }
+  .metric-label { color: var(--muted); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 800; margin-top: 0.25rem; }
+  .status-table { display: grid; gap: 0.65rem; }
+  .status-row {
+    display: grid; grid-template-columns: 150px 1fr; gap: 1rem;
+    border-bottom: 1px solid var(--line); padding-bottom: 0.65rem;
+  }
+  .status-row:last-child { border-bottom: 0; padding-bottom: 0; }
+  .status-label { color: var(--muted); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+  .status-value { line-height: 1.45; }
+  .nutrition-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.7rem; }
   .nut-cell {
-    background: var(--cream); border-radius: 10px; padding: 0.7rem 0.5rem; text-align: center;
+    border: 1px solid var(--line); background: #FAFBF8; padding: 0.85rem 0.65rem; text-align: center;
   }
-  .nut-dot { width: 8px; height: 8px; border-radius: 50%; margin: 0 auto 0.4rem; }
-  .nut-value { font-weight: 600; font-size: 1rem; color: var(--ink); line-height: 1; }
-  .nut-unit { font-size: 0.65rem; color: #8A8480; font-weight: 400; }
-  .nut-name { font-size: 0.68rem; color: #7A7470; margin-top: 0.2rem; text-transform: uppercase; letter-spacing: 0.06em; }
-
-  /* AI description */
-  .ai-tag {
-    font-size: 0.78rem; color: #6A5FA0; background: rgba(123,94,167,0.08);
-    border: 1px solid rgba(123,94,167,0.2); border-radius: 8px;
-    padding: 0.7rem 1rem; line-height: 1.5; display: flex; gap: 0.6rem; align-items: flex-start;
+  .nut-value { font-weight: 800; font-size: 1.05rem; }
+  .nut-unit { color: var(--muted); font-size: 0.7rem; margin-left: 0.12rem; }
+  .nut-name { color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.66rem; margin-top: 0.25rem; font-weight: 800; }
+  .explain {
+    border-left: 4px solid var(--blue); background: var(--blue-soft);
+    padding: 1rem 1.1rem; color: #214D74; line-height: 1.6; margin-bottom: 1.4rem;
   }
-  .ai-icon { font-size: 0.9rem; flex-shrink: 0; }
-
-  /* ── SUMMARY CARD ── */
-  .summary-card {
-    background: var(--warm-white); border: 1px solid var(--sand-light);
-    border-radius: 20px; padding: 2rem; margin-bottom: 2rem;
+  .ai-box {
+    border: 1px solid #C8C1E1; background: #F0EDF8; color: #51477D;
+    padding: 0.9rem 1rem; line-height: 1.55; margin-top: 1rem;
   }
-  .summary-card-title {
-    font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700;
-    margin-bottom: 1.4rem; color: var(--ink);
-  }
-  .avg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; }
-  .avg-cell { text-align: center; }
-  .avg-bar-wrap { width: 100%; height: 8px; background: var(--sand-light); border-radius: 4px; margin-bottom: 0.6rem; overflow: hidden; }
-  .avg-bar { height: 100%; border-radius: 4px; }
-  .avg-value { font-weight: 600; font-size: 1.1rem; color: var(--ink); }
-  .avg-name { font-size: 0.72rem; color: #8A8480; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.2rem; }
-
-  .cta-row { display: flex; gap: 1rem; flex-wrap: wrap; }
-  .btn {
-    padding: 0.9rem 1.8rem; border-radius: 12px; border: none;
-    font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500;
-    cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;
-    transition: all 0.2s ease;
-  }
-  .btn-primary { background: var(--moss); color: #fff; }
-  .btn-primary:hover { background: var(--moss-light); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(61,90,62,0.3); }
-  .btn-secondary { background: transparent; color: var(--ink); border: 1px solid var(--sand); }
-  .btn-secondary:hover { border-color: var(--moss); color: var(--moss); }
-
-  @media (max-width: 780px) {
-    .food-card { grid-template-columns: 1fr; }
-    .card-image img { min-height: 200px; max-height: 240px; }
-    .nutrition-grid { grid-template-columns: repeat(3, 1fr); }
-    nav { padding: 1rem 1.5rem; }
+  a.inline-link { color: var(--green); font-weight: 800; }
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.2rem; align-items: flex-start; }
     .page { padding: 2rem 1.2rem 4rem; }
+    .grid-two { grid-template-columns: 1fr; }
+    .summary-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .nutrition-grid, .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 540px) {
+    .summary-strip, .nutrition-grid, .metric-grid { grid-template-columns: 1fr; }
+    .pred-row { grid-template-columns: 1fr; gap: 0.35rem; }
+    .pred-pct { text-align: left; }
+    .status-row { grid-template-columns: 1fr; gap: 0.25rem; }
   }
 </style>
 </head>
 <body>
-
 <nav>
   <div class="nav-logo">Nutri<span>Lens</span></div>
   <div class="nav-actions">
-    <a href="/" class="nav-btn nav-btn-outline">← Upload new</a>
-    <a href="/reset" class="nav-btn nav-btn-solid">Clear & reset</a>
+    <a href="{{ url_for('index') }}" class="nav-btn">Upload new</a>
+    <a href="{{ url_for('reset') }}" class="nav-btn primary">Clear run</a>
   </div>
 </nav>
 
-<div class="page">
-  <div class="page-header">
-    <div class="page-eyebrow">Analysis complete</div>
-    <h1 class="page-title">Your nutritional report</h1>
-  </div>
+<main class="page">
+  <header class="page-header">
+    <div class="eyebrow">3D analysis complete</div>
+    <h1 class="page-title">Sparse-view portion report</h1>
+    <p class="page-sub">Food recognition is combined with segmentation, pose estimation, 3D volume approximation, and density-aware nutrition scaling.</p>
+  </header>
 
-  {% if not model_loaded %}
-  <div class="demo-banner">
-    ⚠ Running in demo mode — predictions are random. Add <code>model_trained_101class.hdf5</code> to get real results.
-  </div>
+  <section class="summary-strip">
+    <div class="summary-cell">
+      <div class="summary-num">{{ report.image_count }}</div>
+      <div class="summary-label">Views</div>
+    </div>
+    <div class="summary-cell">
+      <div class="summary-num">{{ report.volume.volume }}</div>
+      <div class="summary-label">cm3 volume</div>
+    </div>
+    <div class="summary-cell">
+      <div class="summary-num">{{ report.portion.weight_g }}</div>
+      <div class="summary-label">g weight</div>
+    </div>
+    <div class="summary-cell">
+      <div class="summary-num">{{ report.portion.calories }}</div>
+      <div class="summary-label">kcal portion</div>
+    </div>
+    <div class="summary-cell">
+      <div class="summary-num">{{ report.overall_confidence_label }}</div>
+      <div class="summary-label">Confidence</div>
+    </div>
+  </section>
+
+  {% if report.warnings %}
+  <section class="warning-list">
+    <strong>Uncertainty and fallback notes</strong>
+    {% for warning in report.warnings %}
+      <div>{{ warning }}</div>
+    {% endfor %}
+  </section>
   {% endif %}
 
-  <!-- Summary strip -->
-  <div class="summary-strip">
-    <div class="summary-cell">
-      <div class="summary-num">{{ pack|length }}</div>
-      <div class="summary-label">Items analysed</div>
-    </div>
-    <div class="summary-cell">
-      <div class="summary-num">{{ total_calories }}</div>
-      <div class="summary-label">Est. total kcal</div>
-    </div>
-    {% for n in avg_nutrition %}
-    <div class="summary-cell">
-      <div class="summary-num">{{ n.value }}</div>
-      <div class="summary-label">Avg {{ n.name }} ({{ n.unit }})</div>
-    </div>
-    {% endfor %}
-  </div>
-
-  <!-- Per-food cards -->
-  <div class="cards-grid">
-    {% for item in pack %}
-    <div class="food-card">
-
-      <!-- Image panel -->
-      <div class="card-image">
-        <img src="/{{ item.image }}" alt="{{ item.top_food }}">
-        <div class="card-image-overlay">
-          <span class="card-calories-badge">~{{ item.calories }} kcal / 100g</span>
-        </div>
+  <div class="grid-two">
+    <section class="panel">
+      <h2 class="food-name">{{ report.top_food }}</h2>
+      <p class="muted">Predicted with {{ report.classification_source }}.</p>
+      <div class="pill-row">
+        <span class="pill">{{ report.overall_confidence_label }} confidence</span>
+        <span class="pill blue">{{ report.reconstruction.backend }}</span>
+        <span class="pill amber">{{ report.volume.method }}</span>
       </div>
 
-      <!-- Body -->
-      <div class="card-body">
-        <div class="card-top">
-          <h2 class="card-food-name">{{ item.top_food }}</h2>
-          <a class="nutritionix-link" href="{{ item.nutritionix_url }}" target="_blank">View on Nutritionix ↗</a>
+      <div class="prediction-bars">
+        {% for pred in report.predictions %}
+        <div class="pred-row">
+          <div class="pred-name">{{ pred.food }}</div>
+          <div class="pred-track">
+            <div class="pred-bar" style="width: {{ pred.confidence }}%"></div>
+          </div>
+          <div class="pred-pct">{{ pred.confidence }}%</div>
         </div>
+        {% endfor %}
+      </div>
 
-        <!-- Predictions -->
-        <div>
-          <div class="predictions-label">Top predictions</div>
-          <div class="prediction-bars">
-            {% for pred in item.predictions %}
-            <div class="pred-row">
-              <div class="pred-name">{{ pred.food }}</div>
-              <div class="pred-bar-wrap">
-                <div class="pred-bar {{ ['top','second','third'][loop.index0] }}" style="width: {{ pred.confidence }}%"></div>
-              </div>
-              <div class="pred-pct">{{ pred.confidence }}%</div>
-            </div>
-            {% endfor %}
+      {% if report.ai_description %}
+      <div class="ai-box">{{ report.ai_description }}</div>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title">Uploaded views</h2>
+      <div class="gallery">
+        {% for image in report.images %}
+        <article class="view-card">
+          <img src="{{ url_for('static', filename=image.image) }}" alt="Food view {{ loop.index }}">
+          <div class="view-meta">
+            View {{ loop.index }}<br>
+            {{ image.width }} x {{ image.height }}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <section class="explain">
+    This estimate is based on sparse-view 3D reconstruction, not only 2D pixel area. When native COLMAP or Gaussian Splatting dependencies are unavailable, NutriLens uses a transparent silhouette-depth proxy and widens the uncertainty bounds.
+  </section>
+
+  <div class="grid-two">
+    <section class="panel">
+      <h2 class="section-title">Segmentation masks</h2>
+      <div class="mask-grid">
+        {% for image in report.images %}
+        <article class="mask-card">
+          {% if image.overlay %}
+          <img src="{{ url_for('static', filename=image.overlay) }}" alt="Segmentation overlay {{ loop.index }}">
+          {% endif %}
+          <div class="view-meta">
+            {{ image.segmentation_method }}<br>
+            Confidence {{ (image.segmentation_confidence * 100)|round|int }}%
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title">3D reconstruction status</h2>
+      <div class="status-table">
+        <div class="status-row">
+          <div class="status-label">Pose step</div>
+          <div class="status-value">{{ report.poses.method }} ({{ report.poses.status }})</div>
+        </div>
+        <div class="status-row">
+          <div class="status-label">Backend</div>
+          <div class="status-value">{{ report.reconstruction.backend }} ({{ report.reconstruction.status }})</div>
+        </div>
+        <div class="status-row">
+          <div class="status-label">Point proxy</div>
+          <div class="status-value">
+            {{ report.reconstruction.point_count }} points
+            {% if report.reconstruction.artifact %}
+              - <a class="inline-link" href="{{ url_for('static', filename=report.reconstruction.artifact) }}" target="_blank">PLY artifact</a>
+            {% endif %}
           </div>
         </div>
-
-        <!-- Nutrition grid -->
-        <div>
-          <div class="predictions-label">Nutrition per 100g</div>
-          <div class="nutrition-grid">
-            {% set colors = {'Protein': '#2A6CB5', 'Calcium': '#3D5A3E', 'Fat': '#D4622A', 'Carbohydrates': '#7B5EA7', 'Vitamins': '#B5862A'} %}
-            {% for n in item.nutrition %}
-            <div class="nut-cell">
-              <div class="nut-dot" style="background: {{ colors.get(n.name, '#888') }}"></div>
-              <div class="nut-value">{{ n.value }}<span class="nut-unit">{{ n.unit }}</span></div>
-              <div class="nut-name">{{ n.name }}</div>
-            </div>
-            {% endfor %}
-          </div>
+        <div class="status-row">
+          <div class="status-label">Scale</div>
+          <div class="status-value">{{ report.reconstruction.metadata.scale_assumption }}</div>
         </div>
+      </div>
+    </section>
+  </div>
 
-        <!-- AI description -->
-        {% if item.ai_description %}
-        <div class="ai-tag">
-          <span class="ai-icon">✨</span>
-          <span>{{ item.ai_description }}</span>
-        </div>
-        {% endif %}
-
+  <section class="panel" style="margin-bottom:1.4rem;">
+    <h2 class="section-title">Volume, weight, and calories</h2>
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="metric-value">{{ report.volume.volume }} cm3</div>
+        <div class="metric-label">Volume estimate</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">{{ report.volume.lower_bound }}-{{ report.volume.upper_bound }} cm3</div>
+        <div class="metric-label">Volume interval</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">{{ report.portion.weight_g }} g</div>
+        <div class="metric-label">Estimated weight</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">{{ report.portion.weight_lower_g }}-{{ report.portion.weight_upper_g }} g</div>
+        <div class="metric-label">Weight interval</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">{{ report.portion.calories }} kcal</div>
+        <div class="metric-label">Portion calories</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">{{ report.portion.calories_lower }}-{{ report.portion.calories_upper }} kcal</div>
+        <div class="metric-label">Calorie interval</div>
       </div>
     </div>
-    {% endfor %}
-  </div>
+    <p class="muted" style="margin-top:1rem;">
+      Density prior: {{ report.portion.density_g_per_cm3 }} g/cm3 from {{ report.portion.density_source }}.
+      Per-100g calories: {{ report.portion.calories_per_100g }} kcal.
+    </p>
+  </section>
 
-  <!-- Average summary -->
-  {% if pack|length > 1 %}
-  <div class="summary-card">
-    <div class="summary-card-title">Average across all {{ pack|length }} items</div>
-    <div class="avg-grid">
-      {% set maxvals = {'Protein': 30, 'Calcium': 300, 'Fat': 40, 'Carbohydrates': 80, 'Vitamins': 5} %}
-      {% set colors = {'Protein': '#2A6CB5', 'Calcium': '#3D5A3E', 'Fat': '#D4622A', 'Carbohydrates': '#7B5EA7', 'Vitamins': '#B5862A'} %}
-      {% for n in avg_nutrition %}
-      {% set pct = [((n.value / maxvals.get(n.name, 50)) * 100)|int, 100]|min %}
-      <div class="avg-cell">
-        <div class="avg-bar-wrap">
-          <div class="avg-bar" style="width:{{ pct }}%; background: {{ colors.get(n.name, '#888') }}"></div>
+  <div class="grid-two">
+    <section class="panel">
+      <h2 class="section-title">Nutrition per portion</h2>
+      <div class="nutrition-grid">
+        {% for n in report.portion.nutrition_per_portion %}
+        <div class="nut-cell">
+          <div class="nut-value">{{ n.value }}<span class="nut-unit">{{ n.unit }}</span></div>
+          <div class="nut-name">{{ n.name }}</div>
         </div>
-        <div class="avg-value">{{ n.value }}<span style="font-size:0.7rem;font-weight:400;color:#8A8480">{{ n.unit }}</span></div>
-        <div class="avg-name">{{ n.name }}</div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
+    </section>
 
-  <div class="cta-row">
-    <a href="/" class="btn btn-primary">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Analyse more food
-    </a>
-    <button class="btn btn-secondary" onclick="window.print()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-      Print report
-    </button>
+    <section class="panel">
+      <h2 class="section-title">Nutrition per 100g</h2>
+      <div class="nutrition-grid">
+        {% for n in report.portion.nutrition_per_100g %}
+        <div class="nut-cell">
+          <div class="nut-value">{{ n.value }}<span class="nut-unit">{{ n.unit }}</span></div>
+          <div class="nut-name">{{ n.name }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="muted" style="margin-top:1rem;">
+        <a class="inline-link" href="{{ report.portion.nutritionix_url }}" target="_blank">Reference lookup</a>
+      </p>
+    </section>
   </div>
-</div>
+
+  <section class="panel" style="margin-top:1.4rem;">
+    <h2 class="section-title">Research hooks</h2>
+    <p class="muted">
+      Benchmark configuration: {{ report.research_dataset.name }}.
+      {% if report.research_dataset.configured %}
+        Dataset root is configured for future evaluation.
+      {% else %}
+        Set NUTRILENS_BENCHMARK_DATA_ROOT to attach images, masks, depth maps, meshes, and nutrition labels for volume-error experiments.
+      {% endif %}
+    </p>
+  </section>
+</main>
 
 <script>
-  // Animate bars on load
-  document.querySelectorAll('.pred-bar').forEach(b => {
-    const w = b.style.width; b.style.width = '0';
-    setTimeout(() => { b.style.transition = 'width 0.7s ease'; b.style.width = w; }, 100);
-  });
-  document.querySelectorAll('.avg-bar').forEach(b => {
-    const w = b.style.width; b.style.width = '0';
-    setTimeout(() => { b.style.transition = 'width 0.8s ease'; b.style.width = w; }, 200);
+  document.querySelectorAll('.pred-bar').forEach(bar => {
+    const width = bar.style.width;
+    bar.style.width = '0';
+    window.setTimeout(() => {
+      bar.style.transition = 'width 0.7s ease';
+      bar.style.width = width;
+    }, 100);
   });
 </script>
 </body>

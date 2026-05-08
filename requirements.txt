@@ -2,8 +2,15 @@ flask>=2.3
 werkzeug>=2.3
 numpy>=1.24
 Pillow>=9.5
-tensorflow==2.13.0
-h5py>=3.8
 click>=8.1
 requests>=2.31
 pandas>=2.0
+
+# Optional local classifier runtime. Install when using model_trained_101class.hdf5.
+# TensorFlow 2.13 is kept behind a marker because it does not support newer Python versions.
+tensorflow==2.13.0; python_version < "3.12"
+h5py>=3.8
+
+# Optional integrations:
+# google-generativeai>=0.8
+# opencv-python>=4.8
