@@ -1,4 +1,5 @@
 from pathlib import Path
+import csv
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,6 +7,7 @@ from matplotlib.patches import Circle, Ellipse, FancyArrowPatch, FancyBboxPatch,
 
 
 OUT = Path(__file__).resolve().parent / "figures"
+EVAL_OUT = Path(__file__).resolve().parent.parent / "evaluation" / "outputs"
 OUT.mkdir(parents=True, exist_ok=True)
 
 GREEN = "#2F6B4F"
@@ -255,23 +257,36 @@ def figure_volume():
 
 
 def figure_baselines():
-    methods = ["Fixed\nserving", "2D mask\narea", "Silhouette\nheight", "Sparse-view\nproxy"]
-    volume = [np.nan, 34.8, 28.2, 24.6]
-    cal = [142.6, 118.3, 103.5, 91.7]
+    summary_csv = EVAL_OUT / "summary.csv"
+    if not summary_csv.exists():
+        print("Skipping baseline comparison: evaluation/outputs/summary.csv not found.")
+        return
+
+    rows = []
+    with summary_csv.open("r", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        rows = [row for row in reader]
+
+    if not rows:
+        print("Skipping baseline comparison: summary.csv is empty.")
+        return
+
+    methods = [row["method"] for row in rows]
+    volume = [float(row.get("volume_mape") or 0.0) for row in rows]
+    cal = [float(row.get("calories_mae") or 0.0) for row in rows]
+
     fig, axes = plt.subplots(1, 2, figsize=(8.4, 3.2))
-    axes[0].bar(methods[1:], volume[1:], color=[GRAY, AMBER, GREEN])
+    axes[0].bar(methods, volume, color=GREEN)
     axes[0].set_ylabel("Volume MAPE (%)")
-    axes[0].set_ylim(0, 42)
     axes[0].set_title("Geometry error")
-    axes[1].bar(methods, cal, color=[GRAY, BLUE, AMBER, GREEN])
+    axes[1].bar(methods, cal, color=AMBER)
     axes[1].set_ylabel("Calorie MAE (kcal)")
-    axes[1].set_ylim(0, 160)
     axes[1].set_title("Nutrition error")
     for ax in axes:
         ax.grid(axis="y", alpha=0.25)
         ax.spines[["top", "right"]].set_visible(False)
-        ax.tick_params(axis="x", labelsize=8)
-    fig.suptitle("Prototype baseline comparison using implemented estimators", y=1.03, fontsize=12, weight="bold")
+        ax.tick_params(axis="x", labelsize=8, rotation=15)
+    fig.suptitle("Baseline comparison from evaluation outputs", y=1.03, fontsize=12, weight="bold")
     save(fig, "baseline_comparison")
 
 
@@ -297,29 +312,34 @@ def figure_failure_cases():
 
 
 def figure_ablation():
-    views = np.array([1, 2, 3, 5])
-    mape = np.array([42.5, 29.7, 22.1, 18.9])
-    gauss = np.array([500, 1000, 2000, 4000])
-    runtime = np.array([5.8, 9.4, 15.6, 29.8])
-    iou = np.array([0.45, 0.55, 0.65, 0.75, 0.85])
-    err = np.array([142, 119, 96, 82, 74])
-    fig, axes = plt.subplots(1, 3, figsize=(10.5, 3.0))
-    axes[0].plot(views, mape, marker="o", color=GREEN)
-    axes[0].set_xlabel("Number of views")
-    axes[0].set_ylabel("Volume MAPE (%)")
-    axes[0].set_title("View ablation")
-    axes[1].plot(gauss, runtime, marker="o", color=AMBER)
-    axes[1].set_xlabel("Gaussian count")
-    axes[1].set_ylabel("Runtime (s)")
-    axes[1].set_title("Runtime trade-off")
-    axes[2].plot(iou, err, marker="o", color=BLUE)
-    axes[2].set_xlabel("Segmentation IoU")
-    axes[2].set_ylabel("Calorie MAE (kcal)")
-    axes[2].set_title("Mask sensitivity")
-    for ax in axes:
-        ax.grid(alpha=0.25)
-        ax.spines[["top", "right"]].set_visible(False)
-    fig.suptitle("Pilot ablation trends", y=1.04, fontsize=12, weight="bold")
+    per_run_csv = EVAL_OUT / "per_run.csv"
+    if not per_run_csv.exists():
+        print("Skipping ablation plots: evaluation/outputs/per_run.csv not found.")
+        return
+
+    rows = []
+    with per_run_csv.open("r", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        rows = [row for row in reader if row.get("image_count")]
+
+    if not rows:
+        print("Skipping ablation plots: per_run.csv is empty.")
+        return
+
+    image_counts = sorted({int(row["image_count"]) for row in rows})
+    volume_errors = []
+    for count in image_counts:
+        subset = [row for row in rows if int(row["image_count"]) == count]
+        values = [float(row["volume_abs_error"]) for row in subset if row.get("volume_abs_error")]
+        volume_errors.append(np.mean(values) if values else 0.0)
+
+    fig, ax = plt.subplots(figsize=(4.2, 3.0))
+    ax.plot(image_counts, volume_errors, marker="o", color=GREEN)
+    ax.set_xlabel("Number of views")
+    ax.set_ylabel("Mean absolute volume error")
+    ax.set_title("View count ablation")
+    ax.grid(alpha=0.25)
+    ax.spines[["top", "right"]].set_visible(False)
     save(fig, "ablation_plots")
 
 

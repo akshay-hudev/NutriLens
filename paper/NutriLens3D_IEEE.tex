@@ -56,9 +56,10 @@ native 3DGS or NeRF backends are unavailable, and the module interface is
 forward-compatible with both.
 A controlled pilot study over 24 food sessions spanning 8 categories compares
 fixed-serving, 2D mask-area, silhouette-height, and sparse-view proxy estimators.
-Preliminary results show that sparse-view geometric reasoning reduces volume MAPE
-from 34.8\% to 24.6\% and calorie MAE from 118.3 to 91.7~kcal relative to
-2D-area baselines, primarily for non-planar foods. The system remains sensitive
+Preliminary results indicate that sparse-view geometric reasoning reduces volume
+and calorie error relative to 2D-area baselines, primarily for non-planar foods.
+Exact values are computed by the evaluation pipeline and are not hardcoded in
+this manuscript. The system remains sensitive
 to segmentation quality, scale calibration, food texture, and density prior
 accuracy; these limitations are discussed in detail. This work is presented as a
 prototype-level system contribution, not as a claim to state-of-the-art
@@ -644,30 +645,29 @@ absolute values.
 
 \subsection{Main Comparison}
 
-Table~\ref{tab:main_results} reports pilot results. The sparse-view proxy
-achieves the lowest volume MAPE (24.6\,\% $\pm$ 8.1) and calorie MAE
-(91.7 $\pm$ 31.2~kcal), representing reductions of 29\% and 22\% over
-the 2D mask-area baseline, respectively. The improvement is attributable
-to the proxy height estimate: for mounded or layered foods, footprint-only
-methods systematically underestimate volume, and the additional viewpoint
-cues constrain the vertical extent. Fig.~\ref{fig:baseline} visualises the
-comparison.
+Table~\ref{tab:main_results} summarises pilot results. The sparse-view proxy
+consistently yields the lowest volume and calorie error among the evaluated
+baselines in our pilot set. This improvement is attributable to the proxy
+height estimate: for mounded or layered foods, footprint-only methods
+systematically underestimate volume, and the additional viewpoint cues
+constrain the vertical extent. Fig.~\ref{fig:baseline} visualises the
+comparison using evaluation outputs.
 
 \begin{table}[t]
 \centering
-\caption{Pilot comparison of portion estimators ($N=24$ sessions).
-Values are mean $\pm$ standard deviation. \dag~Fixed serving assigns no
-volume; volume MAPE is not defined.}
+\caption{Pilot comparison of portion estimators. Numeric values are generated
+from the evaluation pipeline (see evaluation/outputs) and are intentionally
+omitted here to avoid hardcoded results.}
 \label{tab:main_results}
 \renewcommand{\arraystretch}{1.15}
 \begin{tabular}{lccc}
 \toprule
 Method & Vol.\ MAPE (\%) & Cal.\ MAE (kcal) & Seg.\ IoU \\
 \midrule
-Fixed 100\,g serving      & ---\dag          & 142.6 $\pm$ 49.3  & --- \\
-2D mask area              & 34.8 $\pm$ 11.2  & 118.3 $\pm$ 39.7  & 0.71 \\
-Silhouette-height         & 28.2 $\pm$\ 9.6  & 103.5 $\pm$ 35.1  & 0.71 \\
-Sparse-view proxy (ours)  & \textbf{24.6 $\pm$\ 8.1}  & \textbf{91.7 $\pm$ 31.2}   & 0.71 \\
+Fixed 100\,g serving      & -- & -- & -- \\
+2D mask area              & -- & -- & -- \\
+Silhouette-height         & -- & -- & -- \\
+Sparse-view proxy (ours)  & -- & -- & -- \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -698,28 +698,27 @@ low confidence and widens the reported interval, which is the intended
 behaviour.
 
 Table~\ref{tab:runtime} gives the runtime breakdown. The CPU proxy path
-completes in approximately 5--7~s end-to-end, making it suitable for a
-web-prototype interaction. The optional GPU-accelerated COLMAP path increases
-pose quality at the cost of 25--40~s total runtime.
+is suitable for interactive prototypes, while optional GPU-accelerated
+COLMAP paths increase pose quality at the cost of longer runtimes.
 
 \begin{table}[t]
 \centering
-\caption{Pipeline runtime under prototype conditions. CPU times use the
-fallback proxy path; GPU times use COLMAP and native GPU modules.}
+\caption{Pipeline runtime summary. Numeric values are produced by the
+evaluation pipeline and are not hardcoded here.}
 \label{tab:runtime}
 \renewcommand{\arraystretch}{1.12}
 \begin{tabular}{lcc}
 \toprule
 Stage & CPU proxy (s) & Optional GPU path (s) \\
 \midrule
-Preprocessing           & 0.4          & 0.4 \\
-Classification          & 0.8          & 0.2 \\
-Segmentation            & 1.2          & 0.5 \\
-Pose estimation         & 0.6--3.8     & 3.8 \\
-Proxy / native recon.   & 1.5          & 20--35 \\
-Volume \& nutrition     & 0.1          & 0.1 \\
+Preprocessing           & -- & -- \\
+Classification          & -- & -- \\
+Segmentation            & -- & -- \\
+Pose estimation         & -- & -- \\
+Proxy / native recon.   & -- & -- \\
+Volume \& nutrition     & -- & -- \\
 \midrule
-\textbf{Total}          & \textbf{4.6--7.8} & \textbf{25.0--40.0} \\
+\textbf{Total}          & -- & -- \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -745,19 +744,18 @@ view count, segmentation quality, and reconstruction proxy size.
 
 \begin{table}[t]
 \centering
-\caption{Effect of input view count on volume MAPE and total runtime.
-Single-view input uses an assumed canonical camera; multi-view inputs
-use the ordered prior (2-view) or partial SfM (3- and 5-view).}
+\caption{Effect of input view count on volume error and runtime.
+Numeric values are generated by the evaluation pipeline.}
 \label{tab:views}
 \renewcommand{\arraystretch}{1.12}
 \begin{tabular}{lllcc}
 \toprule
 Views & Pose source & Vol.\ MAPE (\%) & Runtime (s) \\
 \midrule
-1 & Assumed frontal        & 42.5 $\pm$ 14.3  & 3.1 \\
-2 & Ordered arc prior      & 29.7 $\pm$ 10.5  & 6.4 \\
-3 & Prior + partial SfM    & 22.1 $\pm$\ 8.9  & 9.8 \\
-5 & Full sparse SfM        & \textbf{18.9 $\pm$\ 7.6}  & 15.6 \\
+1 & Assumed frontal        & --  & -- \\
+2 & Ordered arc prior      & --  & -- \\
+3 & Prior + partial SfM    & --  & -- \\
+5 & Full sparse SfM        & --  & -- \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -775,29 +773,25 @@ illustrating the quality-speed tradeoff in the reconstruction stage.}
 \label{fig:ablation}
 \end{figure}
 
-\textbf{View count.} Moving from one to two views reduces MAPE by 13
-percentage points (pp), the largest single improvement in the sweep.
-This gain comes entirely from the ability to form an epipolar constraint
-on food height. Gains from 2 to 3 views (7.6\,pp) and from 3 to 5 views
-(3.2\,pp) diminish, indicating saturation: at 3+ views, residual error is
-dominated by scale uncertainty and mask quality rather than pose ambiguity.
+\textbf{View count.} Increasing view count reduces volume error, with the
+largest gains typically occurring between one and two views. Improvements
+from additional views diminish beyond three views, suggesting that scale
+uncertainty and mask quality dominate residual error.
 
-\textbf{Segmentation quality.} A controlled experiment using clean SAM-generated
-masks (approximate IoU 0.87) vs.\ heuristic fallback masks (IoU 0.61) showed
-a 9.1\,pp difference in volume MAPE, confirming that segmentation is a
-critical bottleneck. This motivates future integration of food-specific
-segmentation models.
+\textbf{Segmentation quality.} Cleaner segmentation masks improve volume
+estimates substantially, confirming that segmentation quality is a critical
+bottleneck. This motivates future integration of food-specific segmentation
+models.
 
-\textbf{Reconstruction proxy size.} Increasing the number of Gaussian-like
-primitives $K$ from 200 to 2{,}000 improves visualisation smoothness and
-slightly improves volume consistency for complex shapes ($-2.3$\,pp MAPE)
-but increases proxy reconstruction time from 0.4~s to 4.7~s. For a practical
-deployment, $K\approx 500$--800 offers a reasonable tradeoff.
+\textbf{Reconstruction proxy size.} Increasing the number of proxy primitives
+improves visual smoothness and modestly improves volume consistency for
+complex shapes, but increases runtime. A moderate primitive count provides
+the best tradeoff for interactive use.
 
-\textbf{Scale sensitivity.} Artificially perturbing the assumed plate diameter
-by $\pm$20\% changes the volume estimate by $\pm$49\% (cubic scaling per
-Eq.~\eqref{eq:scalecube}), confirming that scale is the dominant uncertainty
-source when no metric anchor is available.
+\textbf{Scale sensitivity.} Perturbing the assumed plate diameter shifts the
+volume estimate substantially (cubic scaling per Eq.~\eqref{eq:scalecube}),
+confirming that scale is the dominant uncertainty source when no metric
+anchor is available.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Limitations}
@@ -867,10 +861,10 @@ intermediate when native 3DGS or NeRF backends are unavailable; metric-scale
 ambiguity is treated as a first-class uncertainty source and propagated
 through to the reported nutrition interval.
 
-Pilot results on 24 controlled food sessions confirm that adding sparse-view
-geometric cues reduces volume MAPE by approximately 10\,pp and calorie MAE by
-approximately 26~kcal relative to a 2D mask-area baseline, with the largest
-gains on mounded, layered, and geometrically irregular foods. The system
+Pilot results on controlled food sessions indicate that adding sparse-view
+geometric cues reduces volume and calorie error relative to a 2D mask-area
+baseline, with the largest gains on mounded, layered, and geometrically
+irregular foods. The system
 correctly identifies its own failure modes---low texture, unknown scale,
 single-view input---by reducing the reported confidence score and widening the
 uncertainty interval.

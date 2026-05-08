@@ -1,11 +1,17 @@
-import importlib.util
 import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image
 
+from services.segmentation_backends import (
+    DeepLabV3Backend,
+    GrabCutBackend,
+    HeuristicBackend,
+    SamBackend,
+    U2NetOnnxBackend,
+)
 from utils.image_io import ImageAsset, rel_path
 from utils.volume_math import mask_bbox
 
@@ -21,18 +27,24 @@ class SegmentationResult:
     mask_rel_path: str
     overlay_rel_path: str
     method: str
+    backend: str
     confidence: float
     mask_area_ratio: float
     bbox: dict | None
     warning: str | None = None
+    backend_detail: dict | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
 
 
 class SegmentationService:
-    def __init__(self, static_dir: Path) -> None:
+    def __init__(self, static_dir: Path, backend_name: str = "auto", config=None) -> None:
         self.static_dir = Path(static_dir)
+        self.backend_name = backend_name
+        self.config = config
+        self.backends = self._build_backends()
+        self.backend_map = {backend.backend_id: backend for backend in self.backends}
 
     def segment_many(self, assets: list[ImageAsset], run_dir: Path) -> list[SegmentationResult]:
         results = []
@@ -46,34 +58,62 @@ class SegmentationService:
 
     def segment(self, asset: ImageAsset, run_dir: Path, index: int) -> SegmentationResult:
         image = Image.open(asset.path).convert("RGB")
-
-        if importlib.util.find_spec("cv2") is not None:
+        for backend in self._resolve_backends():
             try:
-                mask = self._grabcut_mask(image)
-                if self._valid_mask(mask):
-                    return self._save_result(
-                        image=image,
-                        mask=mask,
-                        asset=asset,
-                        run_dir=run_dir,
-                        index=index,
-                        method="grabcut",
-                        warning=None,
-                    )
+                result = backend.segment(image)
             except Exception:
-                LOGGER.info("GrabCut segmentation unavailable for %s", asset.path, exc_info=True)
+                LOGGER.info("Segmentation backend %s failed", backend.backend_id, exc_info=True)
+                continue
 
-        mask = self._heuristic_mask(image)
-        warning = "Using lightweight segmentation because no dedicated food segmenter is configured."
-        return self._save_result(
-            image=image,
-            mask=mask,
-            asset=asset,
-            run_dir=run_dir,
-            index=index,
-            method="color-center-prior",
-            warning=warning,
-        )
+            if result is None:
+                continue
+
+            if not self._valid_mask(result.mask):
+                LOGGER.info("Segmentation backend %s produced an invalid mask", backend.backend_id)
+                continue
+
+            return self._save_result(
+                image=image,
+                mask=result.mask,
+                asset=asset,
+                run_dir=run_dir,
+                index=index,
+                method=result.method,
+                backend=result.backend_id,
+                warning=result.warning,
+                backend_detail=result.detail,
+            )
+
+        return self._central_fallback(asset, run_dir, index, "no segmentation backend succeeded")
+
+    def _build_backends(self) -> list:
+        return [
+            SamBackend(
+                checkpoint=getattr(self.config, "SAM_CHECKPOINT", None) if self.config else None,
+                model_type=getattr(self.config, "SAM_MODEL_TYPE", "vit_b") if self.config else "vit_b",
+            ),
+            U2NetOnnxBackend(
+                model_path=getattr(self.config, "U2NET_ONNX_PATH", None) if self.config else None,
+                input_size=getattr(self.config, "U2NET_INPUT_SIZE", 320) if self.config else 320,
+            ),
+            DeepLabV3Backend(
+                device=getattr(self.config, "SEGMENTATION_DEVICE", "cpu") if self.config else "cpu"
+            ),
+            GrabCutBackend(),
+            HeuristicBackend(),
+        ]
+
+    def _resolve_backends(self) -> list:
+        if self.backend_name == "auto":
+            return [backend for backend in self.backends if backend.available()]
+
+        backend = self.backend_map.get(self.backend_name)
+        if backend and backend.available():
+            return [backend]
+
+        LOGGER.warning("Segmentation backend %s is unavailable; using heuristic fallback.", self.backend_name)
+        fallback = self.backend_map.get("heuristic")
+        return [fallback] if fallback else []
 
     def _grabcut_mask(self, image: Image.Image) -> np.ndarray:
         import cv2
@@ -149,6 +189,7 @@ class SegmentationService:
             run_dir=run_dir,
             index=index,
             method="central-ellipse-fallback",
+            backend="fallback",
             warning=f"Segmentation fallback used: {reason}",
         )
 
@@ -160,7 +201,9 @@ class SegmentationService:
         run_dir: Path,
         index: int,
         method: str,
+        backend: str,
         warning: str | None,
+        backend_detail: dict | None = None,
     ) -> SegmentationResult:
         masks_dir = run_dir / "masks"
         mask_path = masks_dir / f"mask_{index:02d}.png"
@@ -182,10 +225,12 @@ class SegmentationService:
             mask_rel_path=rel_path(mask_path, self.static_dir),
             overlay_rel_path=rel_path(overlay_path, self.static_dir),
             method=method,
+            backend=backend,
             confidence=confidence,
             mask_area_ratio=round(area_ratio, 4),
             bbox=bbox.__dict__ if bbox else None,
             warning=warning,
+            backend_detail=backend_detail,
         )
 
     def _overlay(self, image: Image.Image, mask: np.ndarray) -> Image.Image:
@@ -209,6 +254,11 @@ class SegmentationService:
         bbox_fraction = bbox.area / float(width * height)
         plausible_area = 1.0 - min(abs(area_ratio - 0.24) / 0.24, 1.0)
         plausible_box = 1.0 - min(abs(bbox_fraction - 0.38) / 0.38, 1.0)
-        method_bonus = 0.18 if method == "grabcut" else 0.0
+        method_bonus = {
+            "sam": 0.28,
+            "u2net": 0.24,
+            "deeplabv3": 0.2,
+            "grabcut": 0.18,
+        }.get(method, 0.0)
         confidence = 0.28 + 0.32 * plausible_area + 0.22 * plausible_box + method_bonus
         return round(max(0.12, min(0.86, confidence)), 2)

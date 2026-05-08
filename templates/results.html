@@ -263,9 +263,24 @@
             {% endif %}
           </div>
         </div>
+        {% if report.reconstruction.metadata.voxel and report.reconstruction.metadata.voxel.grid_rel_path %}
+        <div class="status-row">
+          <div class="status-label">Voxel grid</div>
+          <div class="status-value">
+            {{ report.reconstruction.metadata.voxel.occupied }} voxels at {{ report.reconstruction.metadata.voxel.voxel_size_cm }} cm
+            - <a class="inline-link" href="{{ url_for('static', filename=report.reconstruction.metadata.voxel.grid_rel_path) }}" target="_blank">NPZ artifact</a>
+          </div>
+        </div>
+        {% endif %}
         <div class="status-row">
           <div class="status-label">Scale</div>
-          <div class="status-value">{{ report.reconstruction.metadata.scale_assumption }}</div>
+          <div class="status-value">
+            {% if report.scale %}
+              {{ report.scale.method }} ({{ report.scale.scale_cm_per_px }} cm/px, conf {{ report.scale.confidence }})
+            {% else %}
+              {{ report.reconstruction.metadata.scale_assumption }}
+            {% endif %}
+          </div>
         </div>
       </div>
     </section>

@@ -25,6 +25,16 @@ def _env_bool(name: str, default: bool = False) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _env_float(name: str, default: float | None = None) -> float | None:
+    value = os.environ.get(name)
+    if value is None or value.strip() == "":
+        return default
+    try:
+        return float(value)
+    except ValueError:
+        return default
+
+
 BASE_DIR = Path(__file__).resolve().parent
 _load_dotenv(BASE_DIR / ".env")
 
@@ -61,7 +71,24 @@ class Config:
     DEFAULT_FRAME_DIAMETER_CM = float(os.environ.get("NUTRILENS_FRAME_DIAMETER_CM", "32"))
     DEFAULT_DENSITY_G_PER_CM3 = float(os.environ.get("NUTRILENS_DEFAULT_DENSITY", "0.85"))
 
+    ENABLE_PLATE_DETECTION = _env_bool("NUTRILENS_ENABLE_PLATE_DETECTION", True)
+    REFERENCE_DIAMETER_CM = _env_float("NUTRILENS_REFERENCE_DIAMETER_CM")
+    REFERENCE_DIAMETER_PX = _env_float("NUTRILENS_REFERENCE_DIAMETER_PX")
+    SCALE_JSON_NAME = os.environ.get("NUTRILENS_SCALE_JSON", "scale.json")
+
+    SEGMENTATION_BACKEND = os.environ.get("NUTRILENS_SEGMENTATION_BACKEND", "auto").lower()
+    SEGMENTATION_DEVICE = os.environ.get("NUTRILENS_SEGMENTATION_DEVICE", "cpu")
+    _U2NET_RAW = os.environ.get("NUTRILENS_U2NET_ONNX", "")
+    U2NET_ONNX_PATH = _project_path(_U2NET_RAW) if _U2NET_RAW else None
+    U2NET_INPUT_SIZE = int(os.environ.get("NUTRILENS_U2NET_INPUT_SIZE", "320"))
+    _SAM_RAW = os.environ.get("NUTRILENS_SAM_CHECKPOINT", "")
+    SAM_CHECKPOINT = _project_path(_SAM_RAW) if _SAM_RAW else None
+    SAM_MODEL_TYPE = os.environ.get("NUTRILENS_SAM_MODEL_TYPE", "vit_b")
+
     RECONSTRUCTION_BACKEND = os.environ.get("NUTRILENS_RECON_BACKEND", "gsplat").lower()
+    VOXEL_SIZE_CM = float(os.environ.get("NUTRILENS_VOXEL_SIZE_CM", "0.4"))
+    VOXEL_MAX_DIM = int(os.environ.get("NUTRILENS_VOXEL_MAX_DIM", "128"))
+    COLMAP_POINT_LIMIT = int(os.environ.get("NUTRILENS_COLMAP_POINT_LIMIT", "4000"))
     COLMAP_BIN = os.environ.get("COLMAP_BIN", "colmap")
     ENABLE_COLMAP = _env_bool("NUTRILENS_ENABLE_COLMAP", False)
     ENABLE_GSPLAT = _env_bool("NUTRILENS_ENABLE_GSPLAT", False)

@@ -1,5 +1,7 @@
 import json
 import logging
+import time
+from datetime import datetime
 from dataclasses import asdict
 from pathlib import Path
 
@@ -31,7 +33,7 @@ app = Flask(__name__, template_folder=str(Config.TEMPLATE_DIR))
 Config.init_app(app)
 
 classifier = ClassificationService(Config.MODEL_PATH)
-segmenter = SegmentationService(Config.STATIC_DIR)
+segmenter = SegmentationService(Config.STATIC_DIR, Config.SEGMENTATION_BACKEND, Config)
 reconstructor = ReconstructionService(Config)
 nutrition_service = NutritionService(Config.NUTRITION_CSV, Config.DEFAULT_DENSITY_G_PER_CM3)
 description_service = GeminiDescriptionService(
@@ -111,15 +113,21 @@ def predict(run_id: str):
         return redirect(url_for("index"))
 
     image_paths = [asset.path for asset in assets]
+    t_start = time.perf_counter()
     classification = classifier.classify_many(
         image_paths, filename_hints=[asset.original_filename for asset in assets]
     )
+    t_classification = time.perf_counter()
     segments = segmenter.segment_many(assets, run_dir)
+    t_segmentation = time.perf_counter()
     reconstruction = reconstructor.reconstruct(assets, segments, run_dir)
+    t_reconstruction = time.perf_counter()
     portion = nutrition_service.estimate_portion(classification.top_food, reconstruction.volume)
+    t_portion = time.perf_counter()
     ai_description = description_service.describe(
         assets[0].path, classification.top_food, portion["calories"]
     )
+    t_description = time.perf_counter()
 
     report = _build_report(
         run_id=run_id,
@@ -130,6 +138,14 @@ def predict(run_id: str):
         reconstruction_pipeline=reconstruction,
         portion=portion,
         ai_description=ai_description,
+        runtime={
+            "classification_s": round(t_classification - t_start, 3),
+            "segmentation_s": round(t_segmentation - t_classification, 3),
+            "reconstruction_s": round(t_reconstruction - t_segmentation, 3),
+            "portion_s": round(t_portion - t_reconstruction, 3),
+            "description_s": round(t_description - t_portion, 3),
+            "total_s": round(t_description - t_start, 3),
+        },
     )
     (run_dir / "result.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
 
@@ -171,6 +187,7 @@ def _build_report(
     reconstruction_pipeline,
     portion: dict,
     ai_description: str | None,
+    runtime: dict | None = None,
 ) -> dict:
     segment_by_image = {segment.image_path: segment for segment in segments}
     images = []
@@ -185,6 +202,8 @@ def _build_report(
                 "mask": segment.mask_rel_path if segment else None,
                 "overlay": segment.overlay_rel_path if segment else None,
                 "segmentation_method": segment.method if segment else "not available",
+                "segmentation_backend": segment.backend if segment else "not available",
+                "segmentation_detail": segment.backend_detail if segment else None,
                 "segmentation_confidence": segment.confidence if segment else 0,
             }
         )
@@ -199,6 +218,7 @@ def _build_report(
     )
     reconstruction = reconstruction_pipeline.reconstruction
     poses = reconstruction_pipeline.poses
+    scale = reconstruction_pipeline.scale
     volume = reconstruction_pipeline.volume
 
     warnings = []
@@ -209,15 +229,22 @@ def _build_report(
         if segment.warning:
             warnings.append(segment.warning)
     warnings.extend(reconstruction.warnings)
+    warnings.extend(scale.warnings)
 
+    classification_confidence = max(pred["confidence"] for pred in classification.predictions) / 100.0
+    pose_confidence = float(poses.confidence) if poses else 0.2
+    scale_confidence = float(scale.confidence) if scale else 0.2
     confidence = min(
         float(volume["confidence"]),
         avg_seg_confidence or 0.2,
-        max(pred["confidence"] for pred in classification.predictions) / 100.0,
+        classification_confidence,
+        pose_confidence,
+        scale_confidence,
     )
 
     return {
         "run_id": run_id,
+        "created_at": datetime.utcnow().isoformat() + "Z",
         "images": images,
         "image_count": len(images),
         "top_food": classification.top_food,
@@ -226,6 +253,7 @@ def _build_report(
         "classification_warning": classification.warning,
         "segmentation": {
             "method": _join_unique(segment.method for segment in segments),
+            "backend": _join_unique(segment.backend for segment in segments),
             "confidence": avg_seg_confidence,
             "confidence_label": confidence_label(avg_seg_confidence),
             "average_mask_area_percent": avg_mask_ratio,
@@ -235,6 +263,9 @@ def _build_report(
             "method": poses.method,
             "confidence": poses.confidence,
             "count": len(poses.poses),
+            "reprojection_error": poses.reprojection_error,
+            "point_count": poses.point_count,
+            "registered_images": poses.registered_images,
         },
         "reconstruction": {
             "status": reconstruction.status,
@@ -246,9 +277,26 @@ def _build_report(
             "metadata": reconstruction.metadata,
         },
         "volume": volume,
+        "scale": {
+            "status": scale.status,
+            "method": scale.method,
+            "scale_cm_per_px": round(scale.scale_cm_per_px, 6),
+            "relative_uncertainty": round(scale.relative_uncertainty, 3),
+            "confidence": round(scale.confidence, 3),
+            "sources": scale.sources,
+        },
         "portion": portion,
         "overall_confidence": round(confidence, 2),
         "overall_confidence_label": confidence_label(confidence),
+        "confidence_breakdown": {
+            "classification": round(classification_confidence, 3),
+            "segmentation": round(avg_seg_confidence, 3),
+            "pose": round(pose_confidence, 3),
+            "scale": round(scale_confidence, 3),
+            "reconstruction": round(float(reconstruction.confidence), 3),
+            "volume": round(float(volume["confidence"]), 3),
+        },
+        "runtime": runtime or {},
         "warnings": _dedupe(warnings),
         "ai_description": ai_description,
         "research_dataset": research_dataset.describe(),

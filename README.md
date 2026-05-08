@@ -51,6 +51,7 @@ Each run writes a self-contained folder under static/uploads/runs/<run_id>/:
 - images/: normalized JPEG inputs
 - masks/: segmentation masks and overlays
 - reconstruction/: proxy point cloud (food_proxy_gaussians.ply)
+- reconstruction/: voxel occupancy grid (food_proxy_voxels.npz)
 - result.json: full report (classification, segmentation, poses, reconstruction, volume, portion, and warnings)
 
 This layout makes it easy to archive runs for qualitative or quantitative evaluation.
@@ -64,6 +65,14 @@ Copy .env.example to .env and adjust values as needed. Key settings:
 - NUTRILENS_MAX_IMAGES, NUTRILENS_MAX_IMAGE_BYTES
 - NUTRILENS_FRAME_DIAMETER_CM, NUTRILENS_PLATE_DIAMETER_CM
 - NUTRILENS_DEFAULT_DENSITY
+- NUTRILENS_ENABLE_PLATE_DETECTION
+- NUTRILENS_REFERENCE_DIAMETER_CM, NUTRILENS_REFERENCE_DIAMETER_PX
+- NUTRILENS_SCALE_JSON (optional run-level scale metadata file name)
+- NUTRILENS_SEGMENTATION_BACKEND (auto, grabcut, heuristic, deeplabv3, u2net, sam)
+- NUTRILENS_SEGMENTATION_DEVICE (cpu by default for torch backends)
+- NUTRILENS_U2NET_ONNX, NUTRILENS_U2NET_INPUT_SIZE
+- NUTRILENS_SAM_CHECKPOINT, NUTRILENS_SAM_MODEL_TYPE
+- NUTRILENS_VOXEL_SIZE_CM, NUTRILENS_VOXEL_MAX_DIM, NUTRILENS_COLMAP_POINT_LIMIT
 - NUTRILENS_RECON_BACKEND (gsplat or nerf)
 - NUTRILENS_ENABLE_COLMAP, COLMAP_BIN
 - NUTRILENS_ENABLE_GSPLAT, NUTRILENS_ENABLE_NERF
@@ -146,6 +155,17 @@ If you need to regenerate nutrition101.csv, obtain a USDA API key and run:
 ```bash
 python get_nutrition_data.py
 ```
+
+## Evaluation Pipeline
+
+NutriLens includes an evaluation toolkit that computes metrics from stored run artifacts.
+Populate evaluation/ground_truth.json with reference values (volume, weight, calories, masks), then run:
+
+```bash
+python -m evaluation.run_benchmark
+```
+
+This produces evaluation/outputs/per_run.csv and evaluation/outputs/summary.csv. Paper figures are generated from these outputs; no benchmark numbers are hardcoded in the plotting scripts.
 
 ## Research Direction
 

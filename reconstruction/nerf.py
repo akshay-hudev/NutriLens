@@ -1,7 +1,7 @@
 import importlib.util
 from pathlib import Path
 
-from reconstruction.types import PoseEstimationResult, ReconstructionResult
+from reconstruction.types import PoseEstimationResult, ReconstructionResult, ScaleEstimationResult
 from services.segmentation_service import SegmentationResult
 from utils.image_io import ImageAsset
 
@@ -17,6 +17,7 @@ class NeRFReconstructor:
         assets: list[ImageAsset],
         segments: list[SegmentationResult],
         poses: PoseEstimationResult,
+        scale: ScaleEstimationResult,
         run_dir: Path,
     ) -> ReconstructionResult:
         available = importlib.util.find_spec("torch") is not None
